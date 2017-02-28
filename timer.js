@@ -1,31 +1,6 @@
-/*
 
-1. Call Timer.init() to set up Timer with 4 mandatory parameters :
-- days
-- hours
-- minutes
-- seconds
-
-You can also set up 3 optional parameters :
-- the one you want to decrement : "days", "hours", "minutes" or "seconds"
-- by which amount
-- every how many milliseconds
-
-Their default values are 
-"seconds", 1, 1000 
-Wich is the normal behavior of time
-
-2. Call Timer.start() to start Timer
-
-3. Call Timer.stop() to stop Timer
-
-4. Call Timer.start() to start Timer again
-
-5. Timer will stop automatically at 0 and change its Timer.status to ""
-
-*/
-
-var running;
+var running, timerSelf;
+InitialValues = {days:"", hours:"", minutes:"", seconds:"", type:"", interval:"", time:""};
 
 Timer = {
 	days: "Nombre de jours non défini",
@@ -35,7 +10,8 @@ Timer = {
 	type: "seconds",
 	interval: 0,
 	time: 1000,
-	init: function(userDays, userHours, userMinutes, userSeconds, userType, userInterval, userTime) {
+	status: "running",
+	init: function(userDays, userHours, userMinutes, userSeconds, userType = "seconds", userInterval = 0, userTime = 1000) {
 		this.days = userDays;
 		this.hours = userHours;
 		this.minutes = userMinutes;
@@ -47,50 +23,77 @@ Timer = {
 		if (this.interval != 0) {
 			this.interval -= 1;
 		}
+
+		InitialValues.days = userDays;
+		InitialValues.hours = userHours;
+		InitialValues.minutes = userMinutes;
+		InitialValues.seconds = userSeconds;
+		InitialValues.type = userType;
+		InitialValues.interval = userInterval;
+		InitialValues.time = userTime;
+
+		this.status = "running";
 	},
 	update: function() {
 		var modulo;
-		if (this.seconds < 0) {
-			modulo = Math.abs(this.seconds);
-			this.minutes --;
-			this.seconds = 60 - modulo;
+		if (timerSelf.seconds < 0) {
+			modulo = Math.abs(timerSelf.seconds);
+			timerSelf.minutes --;
+			timerSelf.seconds = 60 - modulo;
 		}
-		if (this.minutes < 0) {
-			modulo = Math.abs(this.minutes);
-			this.hours --;
-			this.minutes = 60 - modulo;
+		if (timerSelf.minutes < 0) {
+			modulo = Math.abs(timerSelf.minutes);
+			timerSelf.hours --;
+			timerSelf.minutes = 60 - modulo;
 		}
-		if (this.hours < 0) {
-			modulo = Math.abs(this.hours);
-			this.days --;
-			this.hours = 24 - modulo;
+		if (timerSelf.hours < 0) {
+			modulo = Math.abs(timerSelf.hours);
+			timerSelf.days --;
+			timerSelf.hours = 24 - modulo;
 		}
 	},
 	run: function() {
-		switch(this.type) {
+		switch(timerSelf.type) {
 			case "days":
-				this.days -= (1 + this.interval);
-				update();
+				timerSelf.days -= (1 + timerSelf.interval);
+				timerSelf.update();
+				break;
 			case "hours":
-				this.hours -= (1 + this.interval);
-				update();
+				timerSelf.hours -= (1 + timerSelf.interval);
+				timerSelf.update();
+				break;
 			case "minutes":
-				this.minutes -= (1 + this.interval);
-				update();
+				timerSelf.minutes -= (1 + timerSelf.interval);
+				timerSelf.update();
+				break;
 			case "seconds":
-				this.seconds -= (1 + this.interval);
-				update();
+				timerSelf.seconds -= (1 + timerSelf.interval);
+				timerSelf.update();
+				break;
 			default:
 				return "config error";
 		}
-		if (this.days === 0 && this.hours === 0 && this.minutes === 0 && this.seconds === 0) {
-			this.stop();
+		if (timerSelf.days === 0 && timerSelf.hours === 0 && timerSelf.minutes === 0 && timerSelf.seconds === 0) {
+			timerSelf.stop();
+			timerSelf.status = "over";
 		}
 	},
 	stop: function() {
 		clearInterval(running);
 	},
 	start: function() {
+		timerSelf = this; /* bringing the object into setInterval's scope */
 		running = setInterval(this.run, this.time);
+	},
+	reset: function() {
+		this.days = InitialValues.days;
+		this.hours = InitialValues.hours;
+		this.minutes = InitialValues.minutes;
+		this.seconds = InitialValues.seconds;
+		this.type = InitialValues.type;
+		this.interval = InitialValues.interval;
+		this.time = InitialValues.time;
+		this.status = "running";
+		this.stop();
 	}
 };
